@@ -1,0 +1,31 @@
+# Core LLM + LangChain stack
+openai
+langchain
+langchain-core
+langchain-community
+langchain-openai
+langsmith
+
+# Agent / LCEL / Runnable support
+langgraph
+
+# Tools for web scraping
+beautifulsoup4
+lxml
+html5lib
+requests
+
+# Data handling (tables / outputs)
+pandas
+tabulate
+
+# Environment variables
+python-dotenv
+
+# Async / utilities (useful for agents)
+aiohttp
+tqdm
+
+# Optional but commonly needed in LLM projects
+tiktoken
+numpy
