@@ -2,15 +2,13 @@ import streamlit as st
 import time
 from pipeline import run_research_pipeline
 
-# â”€â”€ Page config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 st.set_page_config(
     page_title="Research Pipeline",
-    page_icon="ðŸ”¬",
+    page_icon="🔬",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
-# â”€â”€ Global styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;450;500&display=swap');
@@ -20,156 +18,77 @@ st.markdown("""
     background-color: #0B0F1A;
     color: #DDE3F0;
   }
-
-  .hero {
-    padding: 3rem 0 2rem 0;
-    text-align: center;
-  }
+  .hero { padding: 3rem 0 2rem 0; text-align: center; }
   .hero-eyebrow {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.18em;
-    color: #5B7FFF;
-    text-transform: uppercase;
-    margin-bottom: 0.75rem;
+    font-size: 0.72rem; letter-spacing: 0.18em;
+    color: #5B7FFF; text-transform: uppercase; margin-bottom: 0.75rem;
   }
   .hero-title {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 2.8rem;
-    font-weight: 700;
-    line-height: 1.1;
-    color: #FFFFFF;
-    margin: 0;
-    letter-spacing: -0.02em;
+    font-size: 2.8rem; font-weight: 700; line-height: 1.1;
+    color: #FFFFFF; margin: 0; letter-spacing: -0.02em;
   }
   .hero-title span { color: #5B7FFF; }
   .hero-sub {
-    margin-top: 0.9rem;
-    font-size: 1rem;
-    color: #8896B3;
-    max-width: 540px;
-    margin-left: auto;
-    margin-right: auto;
+    margin-top: 0.9rem; font-size: 1rem; color: #8896B3;
+    max-width: 540px; margin-left: auto; margin-right: auto;
   }
-
   .input-card {
-    background: #141927;
-    border: 1px solid #1E2740;
-    border-radius: 14px;
-    padding: 2rem 2.4rem;
-    margin: 1.5rem auto;
+    background: #141927; border: 1px solid #1E2740;
+    border-radius: 14px; padding: 2rem 2.4rem; margin: 1.5rem auto;
   }
   .input-label {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.14em;
-    color: #5B7FFF;
-    text-transform: uppercase;
-    margin-bottom: 0.4rem;
-  }
-
-  .step-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin: 1.5rem 0;
+    font-size: 0.7rem; letter-spacing: 0.14em;
+    color: #5B7FFF; text-transform: uppercase; margin-bottom: 0.4rem;
   }
   .step-card {
-    background: #141927;
-    border: 1px solid #1E2740;
-    border-radius: 12px;
-    padding: 1.2rem 1.3rem;
-    position: relative;
-    transition: border-color 0.3s;
-    margin-bottom: 0.8rem;
+    background: #141927; border: 1px solid #1E2740;
+    border-radius: 12px; padding: 1.2rem 1.3rem;
+    position: relative; margin-bottom: 0.8rem;
   }
   .step-card.active  { border-color: #5B7FFF; background: #141E35; }
   .step-card.done    { border-color: #22C55E; }
   .step-num {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
-    color: #3D4F72;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.4rem;
+    font-size: 0.65rem; color: #3D4F72; letter-spacing: 0.1em; margin-bottom: 0.4rem;
   }
-  .step-name {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 0.92rem;
-    color: #DDE3F0;
-  }
-  .step-desc {
-    font-size: 0.78rem;
-    color: #5A6A8A;
-    margin-top: 0.25rem;
-  }
+  .step-name { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.92rem; color: #DDE3F0; }
+  .step-desc { font-size: 0.78rem; color: #5A6A8A; margin-top: 0.25rem; }
   .step-badge {
-    position: absolute;
-    top: 0.9rem; right: 0.9rem;
-    font-size: 0.75rem;
-    color: #5A6A8A;
-    letter-spacing: 0.08em;
+    position: absolute; top: 0.9rem; right: 0.9rem;
+    font-size: 0.75rem; letter-spacing: 0.08em;
     font-family: 'IBM Plex Mono', monospace;
   }
-
+  .badge-waiting { color: #5A6A8A; }
+  .badge-active  { color: #5B7FFF; }
+  .badge-done    { color: #22C55E; }
   .pipeline-title {
     font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: #DDE3F0;
-    margin-bottom: 1rem;
+    font-weight: 600; font-size: 1.1rem; color: #DDE3F0; margin-bottom: 1rem;
   }
-
   .result-panel {
-    background: #141927;
-    border: 1px solid #1E2740;
-    border-radius: 12px;
-    padding: 1.6rem 1.8rem;
-    margin-bottom: 1.2rem;
+    background: #141927; border: 1px solid #1E2740;
+    border-radius: 12px; padding: 1.6rem 1.8rem; margin-bottom: 1.2rem;
   }
-  .result-header {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 1rem;
-  }
+  .result-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
   .result-icon {
-    width: 32px; height: 32px;
-    border-radius: 8px;
+    width: 32px; height: 32px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1rem;
-    flex-shrink: 0;
+    font-size: 1rem; flex-shrink: 0;
   }
-  .icon-search  { background: #1A2E55; }
-  .icon-scrape  { background: #1B2B1B; }
-  .icon-report  { background: #2B1F1A; }
-  .icon-critic  { background: #251B30; }
-  .result-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 1rem;
-    color: #DDE3F0;
-  }
-  .result-body {
-    font-size: 0.88rem;
-    line-height: 1.7;
-    color: #9AAAC8;
-    white-space: pre-wrap;
-  }
-
-  .divider {
-    border: none;
-    border-top: 1px solid #1E2740;
-    margin: 2rem 0;
-  }
-
+  .icon-search { background: #1A2E55; }
+  .icon-scrape { background: #1B2B1B; }
+  .icon-report { background: #2B1F1A; }
+  .icon-critic { background: #251B30; }
+  .result-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1rem; color: #DDE3F0; }
+  .result-body { font-size: 0.88rem; line-height: 1.7; color: #9AAAC8; white-space: pre-wrap; }
+  .divider { border: none; border-top: 1px solid #1E2740; margin: 2rem 0; }
   .stTextInput > div > div > input {
-    background: #0B0F1A !important;
-    border: 1px solid #1E2740 !important;
-    border-radius: 8px !important;
-    color: #DDE3F0 !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 1rem !important;
+    background: #0B0F1A !important; border: 1px solid #1E2740 !important;
+    border-radius: 8px !important; color: #DDE3F0 !important;
+    font-family: 'Inter', sans-serif !important; font-size: 1rem !important;
     padding: 0.75rem 1rem !important;
   }
   .stTextInput > div > div > input:focus {
@@ -177,30 +96,20 @@ st.markdown("""
     box-shadow: 0 0 0 3px rgba(91,127,255,0.15) !important;
   }
   .stTextInput > label { display: none !important; }
-
   .stButton > button {
-    background: #5B7FFF !important;
-    color: #FFFFFF !important;
-    border: none !important;
-    border-radius: 8px !important;
-    font-family: 'Space Grotesk', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 0.95rem !important;
-    padding: 0.65rem 2rem !important;
-    letter-spacing: 0.01em !important;
-    transition: background 0.2s !important;
+    background: #5B7FFF !important; color: #FFFFFF !important;
+    border: none !important; border-radius: 8px !important;
+    font-family: 'Space Grotesk', sans-serif !important; font-weight: 600 !important;
+    font-size: 0.95rem !important; padding: 0.65rem 2rem !important;
     width: 100% !important;
   }
-  .stButton > button:hover {
-    background: #4A6EEE !important;
-  }
-
+  .stButton > button:hover { background: #4A6EEE !important; }
   #MainMenu, footer, header { visibility: hidden; }
   .block-container { padding-top: 1rem !important; }
 </style>""", unsafe_allow_html=True)
 
-# â”€â”€ Helper: render result panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-def result_panel(icon: str, icon_cls: str, title: str, content: str):
+
+def result_panel(icon, icon_cls, title, content):
     st.markdown(f"""
 <div class="result-panel">
   <div class="result-header">
@@ -208,45 +117,48 @@ def result_panel(icon: str, icon_cls: str, title: str, content: str):
     <span class="result-title">{title}</span>
   </div>
   <div class="result-body">{content}</div>
-</div>
-""", unsafe_allow_html=True)
+</div>""", unsafe_allow_html=True)
 
-# â”€â”€ Helper: step cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 STEPS = [
-    ("01", "Search Agent",  "Finds recent, reliable sources"),
-    ("02", "Reader Agent",  "Scrapes the best URL for depth"),
-    ("03", "Writer",        "Drafts a structured report"),
-    ("04", "Critic",        "Reviews and scores the report"),
+    ("01", "Search Agent",  "Gathers recent web information"),
+    ("02", "Reader Agent",  "Scrapes & extracts deep content"),
+    ("03", "Writer Chain",  "Drafts the full research report"),
+    ("04", "Critic Chain",  "Reviews & scores the report"),
 ]
 
-def render_steps(active: int = -1, done_up_to: int = -1):
-    cols = st.columns(4)
+
+def render_pipeline(active=-1, done_up_to=0):
+    html = '<div style="padding: 1rem 0;"><div class="pipeline-title">Pipeline</div>'
     for i, (num, name, desc) in enumerate(STEPS):
-        cls = ""
-        badge = ""
         if i < done_up_to:
             cls = "done"
-            badge = "âœ…"
+            badge_cls = "badge-done"
+            badge = "&#10003; DONE"
         elif i == active:
             cls = "active"
-            badge = "âš™ï¸"
-        with cols[i]:
-            st.markdown(f"""
-            <div class="step-card {cls}">
-              <div class="step-num">STEP {num}</div>
-              <div class="step-name">{name}</div>
-              <div class="step-desc">{desc}</div>
-              <div class="step-badge">{badge}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            badge_cls = "badge-active"
+            badge = "&#9881; RUNNING"
+        else:
+            cls = ""
+            badge_cls = "badge-waiting"
+            badge = "WAITING"
+        html += f"""
+        <div class="step-card {cls}">
+          <div class="step-num">{num}</div>
+          <div class="step-name">{name}</div>
+          <div class="step-desc">{desc}</div>
+          <div class="step-badge {badge_cls}">{badge}</div>
+        </div>"""
+    html += '</div>'
+    st.markdown(html, unsafe_allow_html=True)
 
-# â”€â”€ Session state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 if "results" not in st.session_state:
     st.session_state.results = None
 if "running" not in st.session_state:
     st.session_state.running = False
 
-# â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 st.markdown("""
 <div class="hero">
   <div class="hero-eyebrow">Multi-Agent Research System</div>
@@ -254,15 +166,12 @@ st.markdown("""
   <p class="hero-sub">Enter any topic. Four specialised agents will search, scrape, write, and critique a full research report for you.</p>
 </div>""", unsafe_allow_html=True)
 
-# â”€â”€ Two-column layout: Input on left, Pipeline on right â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 col_left, col_right = st.columns([1.2, 1])
 
 with col_left:
     st.markdown('<div class="input-card">', unsafe_allow_html=True)
     st.markdown('<div class="input-label">Research Topic</div>', unsafe_allow_html=True)
-
     col_input, col_btn = st.columns([4, 1])
-
     with col_input:
         topic = st.text_input(
             label="topic",
@@ -270,56 +179,24 @@ with col_left:
             key="topic_input",
             disabled=st.session_state.running,
         )
-
     with col_btn:
         st.markdown("<br>", unsafe_allow_html=True)
         run_clicked = st.button(
-            "Run Research" if not st.session_state.running else "Runningâ€¦",
+            "Run Research" if not st.session_state.running else "Running...",
             disabled=st.session_state.running or not topic.strip(),
         )
-
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_right:
-    st.markdown("""
-    <div style="padding: 1rem 0;">
-        <div class="pipeline-title">Pipeline</div>
-        <div class="step-card">
-            <div class="step-num">01</div>
-            <div class="step-name">Search Agent</div>
-            <div class="step-desc">Gathers recent web information</div>
-            <div class="step-badge">WAITING</div>
-        </div>
-        <div class="step-card">
-            <div class="step-num">02</div>
-            <div class="step-name">Reader Agent</div>
-            <div class="step-desc">Scrapes & extracts deep content</div>
-            <div class="step-badge">WAITING</div>
-        </div>
-        <div class="step-card">
-            <div class="step-num">03</div>
-            <div class="step-name">Writer Chain</div>
-            <div class="step-desc">Drafts the full research report</div>
-            <div class="step-badge">WAITING</div>
-        </div>
-        <div class="step-card">
-            <div class="step-num">04</div>
-            <div class="step-name">Critic Chain</div>
-            <div class="step-desc">Reviews & scores the report</div>
-            <div class="step-badge">WAITING</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    pipeline_placeholder = st.empty()
+    with pipeline_placeholder.container():
+        render_pipeline(active=-1, done_up_to=0)
 
-# â”€â”€ Run pipeline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if run_clicked and topic.strip():
     st.session_state.running = True
     st.session_state.results = None
 
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
-    st.markdown("#### Pipeline Progress")
-
-    step_placeholder = st.empty()
     status_placeholder = st.empty()
 
     from agents import build_reader_agent, build_search_agent, writer_chain, critic_chain
@@ -327,11 +204,10 @@ if run_clicked and topic.strip():
     state = {}
 
     try:
-        # â”€â”€ Stage 1: Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        step_placeholder.empty()
-        with step_placeholder.container():
-            render_steps(active=0, done_up_to=0)
-        status_placeholder.info("ðŸ” Search Agent is workingâ€¦")
+        # Stage 1: Search
+        with pipeline_placeholder.container():
+            render_pipeline(active=0, done_up_to=0)
+        status_placeholder.info("Search Agent is working...")
 
         search_agent = build_search_agent()
         search_result = search_agent.invoke({
@@ -339,11 +215,10 @@ if run_clicked and topic.strip():
         })
         state["search_results"] = search_result["messages"][-1].content
 
-        # â”€â”€ Stage 2: Reader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        step_placeholder.empty()
-        with step_placeholder.container():
-            render_steps(active=1, done_up_to=1)
-        status_placeholder.info("ðŸ“– Reader Agent is scraping top resourcesâ€¦")
+        # Stage 2: Reader
+        with pipeline_placeholder.container():
+            render_pipeline(active=1, done_up_to=1)
+        status_placeholder.info("Reader Agent is scraping top resources...")
 
         reader_agent = build_reader_agent()
         reader_result = reader_agent.invoke({
@@ -355,11 +230,10 @@ if run_clicked and topic.strip():
         })
         state["scraped_content"] = reader_result["messages"][-1].content
 
-        # â”€â”€ Stage 3: Writer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        step_placeholder.empty()
-        with step_placeholder.container():
-            render_steps(active=2, done_up_to=2)
-        status_placeholder.info("âœï¸ Writer is drafting the reportâ€¦")
+        # Stage 3: Writer
+        with pipeline_placeholder.container():
+            render_pipeline(active=2, done_up_to=2)
+        status_placeholder.info("Writer is drafting the report...")
 
         research_combined = (
             f"SEARCH RESULTS:\n{state['search_results']}\n\n"
@@ -370,19 +244,17 @@ if run_clicked and topic.strip():
             "research": research_combined,
         })
 
-        # â”€â”€ Stage 4: Critic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        step_placeholder.empty()
-        with step_placeholder.container():
-            render_steps(active=3, done_up_to=3)
-        status_placeholder.info("ðŸ”Ž Critic is reviewing the reportâ€¦")
+        # Stage 4: Critic
+        with pipeline_placeholder.container():
+            render_pipeline(active=3, done_up_to=3)
+        status_placeholder.info("Critic is reviewing the report...")
 
         state["feedback"] = critic_chain.invoke({"report": state["report"]})
 
-        # â”€â”€ All done â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        step_placeholder.empty()
-        with step_placeholder.container():
-            render_steps(active=-1, done_up_to=4)
-        status_placeholder.success("âœ… Pipeline complete!")
+        # All done
+        with pipeline_placeholder.container():
+            render_pipeline(active=-1, done_up_to=4)
+        status_placeholder.success("Pipeline complete!")
 
         st.session_state.results = state
 
@@ -392,33 +264,26 @@ if run_clicked and topic.strip():
     finally:
         st.session_state.running = False
 
-# â”€â”€ Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if st.session_state.results:
     r = st.session_state.results
-
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
     st.markdown("#### Results")
 
     tab_report, tab_search, tab_scrape, tab_critic = st.tabs([
-        "ðŸ“„ Final Report", "ðŸ” Search Results", "ðŸ“– Scraped Content", "ðŸ”Ž Critic Feedback"
+        "Final Report", "Search Results", "Scraped Content", "Critic Feedback"
     ])
-
     with tab_report:
-        result_panel("ðŸ“„", "icon-report", "Research Report", r.get("report", ""))
-
+        result_panel("📄", "icon-report", "Research Report", r.get("report", ""))
     with tab_search:
-        result_panel("ðŸ”", "icon-search", "Search Agent Output", r.get("search_results", ""))
-
+        result_panel("🔍", "icon-search", "Search Agent Output", r.get("search_results", ""))
     with tab_scrape:
-        result_panel("ðŸ“–", "icon-scrape", "Scraped Content", r.get("scraped_content", ""))
-
+        result_panel("📖", "icon-scrape", "Scraped Content", r.get("scraped_content", ""))
     with tab_critic:
-        result_panel("ðŸ”Ž", "icon-critic", "Critic Feedback", r.get("feedback", ""))
+        result_panel("🔎", "icon-critic", "Critic Feedback", r.get("feedback", ""))
 
     st.download_button(
-        label="â¬‡ï¸  Download Report as .txt",
+        label="Download Report as .txt",
         data=r.get("report", ""),
         file_name=f"research_report_{int(time.time())}.txt",
         mime="text/plain",
-    ) 
-      
+    )
