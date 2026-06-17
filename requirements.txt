@@ -5,6 +5,10 @@ langchain-core
 langchain-community
 langchain-openai
 langsmith
+langchain-mistralai
+streamlit
+tavily-python
+python-dotenv
 
 # Agent / LCEL / Runnable support
 langgraph
