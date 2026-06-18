@@ -2,7 +2,6 @@ import streamlit as st
 import time
 from agents import build_reader_agent, build_search_agent, writer_chain, critic_chain
 
-# ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="ResearchMind · AI Research Agent",
     page_icon="🔬",
@@ -10,7 +9,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
@@ -89,26 +87,16 @@ html, body, [class*="css"] {
     padding: 0.75rem 1rem !important;
     transition: border-color 0.2s, box-shadow 0.2s !important;
 }
-
-.stTextInput > div > div > input::placeholder {
-    color: #666666 !important;
-}
-
+.stTextInput > div > div > input::placeholder { color: #666666 !important; }
 .stTextInput > div > div > input:focus {
     border-color: #ff8c32 !important;
     box-shadow: 0 0 0 3px rgba(255,140,50,0.12) !important;
 }
-
-/* Fix Chrome yellow autofill */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
     -webkit-text-fill-color: #000000 !important;
     -webkit-box-shadow: 0 0 0px 1000px white inset !important;
-}
-.stTextInput > div > div > input:focus {
-    border-color: #ff8c32 !important;
-    box-shadow: 0 0 0 3px rgba(255,140,50,0.12) !important;
 }
 .stTextInput > label {
     font-family: 'DM Mono', monospace !important;
@@ -259,6 +247,53 @@ input:-webkit-autofill:focus {
     border-bottom: 1px solid rgba(80,200,120,0.15);
 }
 
+/* ── History panel ─────────────────────────────────── */
+.history-section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.0rem;
+    font-weight: 700;
+    color: #f0ebe0;
+    margin: 1.8rem 0 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.history-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 0.6rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.history-item:hover {
+    border-color: rgba(255,140,50,0.3);
+    background: rgba(255,140,50,0.04);
+}
+.history-item-topic {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #e8e4dc;
+    margin-bottom: 0.15rem;
+}
+.history-item-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: #605850;
+    letter-spacing: 0.06em;
+}
+.history-arrow {
+    color: #ff8c32;
+    font-size: 0.9rem;
+    opacity: 0.6;
+}
+/* ─────────────────────────────────────────────────── */
+
 .stSpinner > div { color: #ff8c32 !important; }
 
 details summary {
@@ -315,6 +350,12 @@ for key in ("results", "running", "done"):
     if key not in st.session_state:
         st.session_state[key] = {} if key == "results" else False
 
+if "search_history" not in st.session_state:
+    st.session_state.search_history = []   # list of {topic, results, timestamp}
+
+if "viewing_history" not in st.session_state:
+    st.session_state.viewing_history = None  # index into search_history, or None
+
 
 # ── Hero ──────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -336,7 +377,6 @@ col_input, col_spacer, col_pipeline = st.columns([5, 0.5, 4])
 with col_input:
     st.markdown('<div class="input-card">', unsafe_allow_html=True)
 
-    # ── Voice input component ──
     st.components.v1.html("""
     <div style="margin-bottom:0.8rem;">
         <button id="voiceBtn" onclick="toggleVoice()" style="
@@ -373,10 +413,7 @@ with col_input:
             document.getElementById('transcript').textContent = '⚠ Voice not supported. Please use Chrome or Edge.';
             return;
         }
-        if (listening) {
-            recognition.stop();
-            return;
-        }
+        if (listening) { recognition.stop(); return; }
 
         recognition = new SpeechRecognition();
         recognition.lang = 'en-US';
@@ -396,17 +433,12 @@ with col_input:
         };
 
         recognition.onresult = (e) => {
-            const transcript = Array.from(e.results)
-                .map(r => r[0].transcript).join('');
+            const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
             div.textContent = transcript;
-
             if (e.results[e.results.length - 1].isFinal) {
-                // Inject transcript into Streamlit's text input
                 const inputs = window.parent.document.querySelectorAll('input[type="text"]');
                 if (inputs.length > 0) {
-                    const setter = Object.getOwnPropertyDescriptor(
-                        window.HTMLInputElement.prototype, 'value'
-                    ).set;
+                    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
                     setter.call(inputs[0], transcript);
                     inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
                 }
@@ -445,7 +477,6 @@ with col_input:
     run_btn = st.button("⚡  Run Research Pipeline", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Example chips
     st.markdown("""
     <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem;">
         <span style="font-family:'DM Mono',monospace;font-size:0.68rem;color:#605850;letter-spacing:0.1em;">TRY →</span>
@@ -489,22 +520,61 @@ with col_pipeline:
     step_card("03", "Writer Chain",  s("writer"), "Drafts the full research report")
     step_card("04", "Critic Chain",  s("critic"), "Reviews & scores the report")
 
+    # ── Recent Search History ─────────────────────────────────────────────────
+    history = st.session_state.search_history
+    if history:
+        st.markdown('<div class="history-section-title">🕘 Recent Searches</div>', unsafe_allow_html=True)
+        for i, item in enumerate(reversed(history)):
+            real_idx = len(history) - 1 - i
+            ago_secs = int(time.time() - item["timestamp"])
+            if ago_secs < 60:
+                ago_str = f"{ago_secs}s ago"
+            elif ago_secs < 3600:
+                ago_str = f"{ago_secs // 60}m ago"
+            else:
+                ago_str = f"{ago_secs // 3600}h ago"
+
+            is_viewing = st.session_state.viewing_history == real_idx
+            highlight = "border-color:rgba(255,140,50,0.45);background:rgba(255,140,50,0.06);" if is_viewing else ""
+            st.markdown(f"""
+            <div class="history-item" style="{highlight}">
+                <div>
+                    <div class="history-item-topic">{item['topic']}</div>
+                    <div class="history-item-meta">{ago_str} · 4 steps completed</div>
+                </div>
+                <span class="history-arrow">→</span>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button(f"View", key=f"hist_{real_idx}", use_container_width=True):
+                st.session_state.viewing_history = real_idx
+                st.rerun()
+
 
 # ── Run pipeline ──────────────────────────────────────────────────────────────
 if run_btn:
     if not topic.strip():
         st.warning("Please enter a research topic first.")
     else:
+        # Push current results to history before starting new search
+        if st.session_state.results and st.session_state.done:
+            prev_topic = st.session_state.get("last_topic", "Unknown topic")
+            st.session_state.search_history.append({
+                "topic": prev_topic,
+                "results": dict(st.session_state.results),
+                "timestamp": time.time(),
+            })
+
         st.session_state.results = {}
         st.session_state.running = True
         st.session_state.done = False
+        st.session_state.viewing_history = None
+        st.session_state["last_topic"] = topic.strip()
         st.rerun()
 
 if st.session_state.running and not st.session_state.done:
     results = {}
     topic_val = st.session_state.topic_input
 
-    # ── Step 1: Search ──
     with st.spinner("🔍  Search Agent is working…"):
         search_agent = build_search_agent()
         sr = search_agent.invoke({
@@ -513,7 +583,6 @@ if st.session_state.running and not st.session_state.done:
         results["search"] = sr["messages"][-1].content
         st.session_state.results = dict(results)
 
-    # ── Step 2: Reader ──
     with st.spinner("📄  Reader Agent is scraping top resources…"):
         reader_agent = build_reader_agent()
         rr = reader_agent.invoke({
@@ -526,7 +595,6 @@ if st.session_state.running and not st.session_state.done:
         results["reader"] = rr["messages"][-1].content
         st.session_state.results = dict(results)
 
-    # ── Step 3: Writer ──
     with st.spinner("✍️  Writer is drafting the report…"):
         research_combined = (
             f"SEARCH RESULTS:\n{results['search']}\n\n"
@@ -538,7 +606,6 @@ if st.session_state.running and not st.session_state.done:
         })
         st.session_state.results = dict(results)
 
-    # ── Step 4: Critic ──
     with st.spinner("🧐  Critic is reviewing the report…"):
         results["critic"] = critic_chain.invoke({
             "report": results["writer"]
@@ -550,12 +617,31 @@ if st.session_state.running and not st.session_state.done:
     st.rerun()
 
 
-# ── Results display ───────────────────────────────────────────────────────────
-r = st.session_state.results
+# ── Decide which results to display ──────────────────────────────────────────
+# If user clicked a history item, show that; otherwise show current results
+viewing_idx = st.session_state.viewing_history
+if viewing_idx is not None and viewing_idx < len(st.session_state.search_history):
+    display_results = st.session_state.search_history[viewing_idx]["results"]
+    display_topic   = st.session_state.search_history[viewing_idx]["topic"]
+    is_history_view = True
+else:
+    display_results = st.session_state.results
+    display_topic   = st.session_state.get("last_topic", "")
+    is_history_view = False
+
+r = display_results
 
 if r:
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-heading">Results</div>', unsafe_allow_html=True)
+
+    heading_suffix = f" · <span style='color:#ff8c32;font-size:1rem;'>{display_topic}</span>" if display_topic else ""
+    if is_history_view:
+        st.markdown(f'<div class="section-heading">📂 History Results{heading_suffix}</div>', unsafe_allow_html=True)
+        if st.button("← Back to current results"):
+            st.session_state.viewing_history = None
+            st.rerun()
+    else:
+        st.markdown(f'<div class="section-heading">Results{heading_suffix}</div>', unsafe_allow_html=True)
 
     if "search" in r:
         with st.expander("🔍 Search Results (raw)", expanded=False):
@@ -582,7 +668,6 @@ if r:
             mime="text/markdown",
         )
 
-        # ── TTS for report ──
         report_text = r["writer"].replace('"', '\\"').replace('\n', ' ').replace('`', '')
         st.components.v1.html(f"""
         <div style="margin-top:0.8rem;">
@@ -658,7 +743,6 @@ if r:
         st.markdown(r["critic"])
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── TTS for critic ──
         critic_text = r["critic"].replace('"', '\\"').replace('\n', ' ').replace('`', '')
         st.components.v1.html(f"""
         <div style="margin-top:0.8rem;">
@@ -727,7 +811,6 @@ if r:
         """, height=60)
 
 
-# ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="notice">
     ResearchMind · Powered by LangChain multi-agent pipeline · Built with Streamlit
