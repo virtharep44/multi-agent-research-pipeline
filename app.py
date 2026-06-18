@@ -80,14 +80,31 @@ html, body, [class*="css"] {
 }
 
 .stTextInput > div > div > input {
-    background: rgba(255,255,255,0.05) !important;
+    background: #ffffff !important;
     border: 1px solid rgba(255,140,50,0.25) !important;
     border-radius: 10px !important;
-    color: #f0ebe0 !important;
+    color: #000000 !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 1rem !important;
     padding: 0.75rem 1rem !important;
     transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+.stTextInput > div > div > input::placeholder {
+    color: #666666 !important;
+}
+
+.stTextInput > div > div > input:focus {
+    border-color: #ff8c32 !important;
+    box-shadow: 0 0 0 3px rgba(255,140,50,0.12) !important;
+}
+
+/* Fix Chrome yellow autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #000000 !important;
+    -webkit-box-shadow: 0 0 0px 1000px white inset !important;
 }
 .stTextInput > div > div > input:focus {
     border-color: #ff8c32 !important;
