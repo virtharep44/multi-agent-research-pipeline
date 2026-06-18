@@ -15,7 +15,6 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
 
-/* ── Reset & base ── */
 html, body, [class*="css"] {
     font-family: 'DM Sans', sans-serif;
     color: #e8e4dc;
@@ -28,11 +27,9 @@ html, body, [class*="css"] {
         radial-gradient(ellipse 60% 40% at 80% 110%, rgba(255,80,30,0.08) 0%, transparent 55%);
 }
 
-/* ── Hide default streamlit chrome ── */
 #MainMenu, footer, header { visibility: hidden; }
 .block-container { padding: 2rem 3rem 4rem; max-width: 1200px; }
 
-/* ── Hero header ── */
 .hero {
     text-align: center;
     padding: 3.5rem 0 2.5rem;
@@ -57,9 +54,7 @@ html, body, [class*="css"] {
     color: #f0ebe0;
     margin: 0 0 1rem;
 }
-.hero h1 span {
-    color: #ff8c32;
-}
+.hero h1 span { color: #ff8c32; }
 .hero-sub {
     font-size: 1.05rem;
     font-weight: 300;
@@ -69,14 +64,12 @@ html, body, [class*="css"] {
     line-height: 1.65;
 }
 
-/* ── Divider ── */
 .divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(255,140,50,0.3), transparent);
     margin: 2rem 0;
 }
 
-/* ── Input card ── */
 .input-card {
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,140,50,0.15);
@@ -86,7 +79,6 @@ html, body, [class*="css"] {
     backdrop-filter: blur(8px);
 }
 
-/* ── Streamlit input overrides ── */
 .stTextInput > div > div > input {
     background: rgba(255,255,255,0.05) !important;
     border: 1px solid rgba(255,140,50,0.25) !important;
@@ -110,7 +102,6 @@ html, body, [class*="css"] {
     font-weight: 500 !important;
 }
 
-/* ── Button ── */
 .stButton > button {
     background: linear-gradient(135deg, #ff8c32 0%, #ff5a1a 100%) !important;
     color: #0a0a0f !important;
@@ -131,11 +122,8 @@ html, body, [class*="css"] {
     box-shadow: 0 8px 28px rgba(255,140,50,0.4) !important;
     opacity: 0.95 !important;
 }
-.stButton > button:active {
-    transform: translateY(0) !important;
-}
+.stButton > button:active { transform: translateY(0) !important; }
 
-/* ── Pipeline step cards ── */
 .step-card {
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.07);
@@ -196,7 +184,6 @@ html, body, [class*="css"] {
 .status-running  { color: #ff8c32; }
 .status-done     { color: #50c878; }
 
-/* ── Result panels ── */
 .result-panel {
     background: rgba(255,255,255,0.025);
     border: 1px solid rgba(255,255,255,0.07);
@@ -224,7 +211,6 @@ html, body, [class*="css"] {
     font-family: 'DM Sans', sans-serif;
 }
 
-/* ── Report & feedback panels ── */
 .report-panel {
     background: rgba(255,255,255,0.025);
     border: 1px solid rgba(255,140,50,0.2);
@@ -256,10 +242,8 @@ html, body, [class*="css"] {
     border-bottom: 1px solid rgba(80,200,120,0.15);
 }
 
-/* ── Progress text ── */
 .stSpinner > div { color: #ff8c32 !important; }
 
-/* ── Expander ── */
 details summary {
     font-family: 'DM Mono', monospace !important;
     font-size: 0.75rem !important;
@@ -268,7 +252,6 @@ details summary {
     cursor: pointer;
 }
 
-/* ── Section heading ── */
 .section-heading {
     font-family: 'Syne', sans-serif;
     font-size: 1.3rem;
@@ -277,7 +260,6 @@ details summary {
     margin: 2rem 0 1rem;
 }
 
-/* ── Toast-style notice ── */
 .notice {
     font-family: 'DM Mono', monospace;
     font-size: 0.72rem;
@@ -336,6 +318,107 @@ col_input, col_spacer, col_pipeline = st.columns([5, 0.5, 4])
 
 with col_input:
     st.markdown('<div class="input-card">', unsafe_allow_html=True)
+
+    # ── Voice input component ──
+    st.components.v1.html("""
+    <div style="margin-bottom:0.8rem;">
+        <button id="voiceBtn" onclick="toggleVoice()" style="
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,140,50,0.25);
+            border-radius: 10px;
+            color: #ff8c32;
+            font-size: 0.9rem;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.05em;
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            transition: all 0.2s;
+        ">🎙&nbsp; Click to speak your topic</button>
+        <div id="transcript" style="
+            font-size: 0.75rem;
+            color: #a09890;
+            font-family: 'DM Mono', monospace;
+            margin-top: 0.4rem;
+            min-height: 1.2rem;
+            letter-spacing: 0.05em;
+            text-align: center;
+        "></div>
+    </div>
+
+    <script>
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition, listening = false;
+
+    function toggleVoice() {
+        if (!SpeechRecognition) {
+            document.getElementById('transcript').textContent = '⚠ Voice not supported. Please use Chrome or Edge.';
+            return;
+        }
+        if (listening) {
+            recognition.stop();
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = true;
+        recognition.continuous = false;
+
+        const btn = document.getElementById('voiceBtn');
+        const div = document.getElementById('transcript');
+
+        recognition.onstart = () => {
+            listening = true;
+            btn.textContent = '⏹  Stop recording';
+            btn.style.borderColor = '#ff5a1a';
+            btn.style.background = 'rgba(255,90,26,0.12)';
+            btn.style.color = '#ff5a1a';
+            div.textContent = '● Listening…';
+        };
+
+        recognition.onresult = (e) => {
+            const transcript = Array.from(e.results)
+                .map(r => r[0].transcript).join('');
+            div.textContent = transcript;
+
+            if (e.results[e.results.length - 1].isFinal) {
+                // Inject transcript into Streamlit's text input
+                const inputs = window.parent.document.querySelectorAll('input[type="text"]');
+                if (inputs.length > 0) {
+                    const setter = Object.getOwnPropertyDescriptor(
+                        window.HTMLInputElement.prototype, 'value'
+                    ).set;
+                    setter.call(inputs[0], transcript);
+                    inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                div.textContent = '✓ ' + transcript;
+            }
+        };
+
+        recognition.onend = () => {
+            listening = false;
+            btn.textContent = '🎙\u00a0 Click to speak your topic';
+            btn.style.borderColor = 'rgba(255,140,50,0.25)';
+            btn.style.background = 'rgba(255,255,255,0.05)';
+            btn.style.color = '#ff8c32';
+        };
+
+        recognition.onerror = (e) => {
+            div.textContent = '⚠ Error: ' + e.error;
+            listening = false;
+            btn.textContent = '🎙\u00a0 Click to speak your topic';
+            btn.style.borderColor = 'rgba(255,140,50,0.25)';
+            btn.style.background = 'rgba(255,255,255,0.05)';
+            btn.style.color = '#ff8c32';
+        };
+
+        recognition.start();
+    }
+    </script>
+    """, height=85)
+
     topic = st.text_input(
         "Research Topic",
         placeholder="e.g. Quantum computing breakthroughs in 2025",
@@ -376,14 +459,10 @@ with col_pipeline:
         if not r:
             return "waiting"
         steps = ["search", "reader", "writer", "critic"]
-        idx = steps.index(step)
-        completed = list(r.keys())
-        # figure out which steps are done
         if step in r:
             return "done"
-        # which step is running now (first not in r)
         if st.session_state.running:
-            for i, k in enumerate(steps):
+            for k in steps:
                 if k not in r:
                     return "running" if k == step else "waiting"
         return "waiting"
@@ -416,7 +495,6 @@ if st.session_state.running and not st.session_state.done:
         })
         results["search"] = sr["messages"][-1].content
         st.session_state.results = dict(results)
-    st.rerun() if False else None   # keep inline for now
 
     # ── Step 2: Reader ──
     with st.spinner("📄  Reader Agent is scraping top resources…"):
@@ -462,7 +540,6 @@ if r:
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
     st.markdown('<div class="section-heading">Results</div>', unsafe_allow_html=True)
 
-    # Raw outputs in expanders
     if "search" in r:
         with st.expander("🔍 Search Results (raw)", expanded=False):
             st.markdown(f'<div class="result-panel"><div class="result-panel-title">Search Agent Output</div>'
@@ -473,16 +550,14 @@ if r:
             st.markdown(f'<div class="result-panel"><div class="result-panel-title">Reader Agent Output</div>'
                         f'<div class="result-content">{r["reader"]}</div></div>', unsafe_allow_html=True)
 
-    # Final report
     if "writer" in r:
         st.markdown("""
         <div class="report-panel">
             <div class="panel-label orange">📝 Final Research Report</div>
         """, unsafe_allow_html=True)
-        st.markdown(r["writer"])   # render markdown natively
+        st.markdown(r["writer"])
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # Download
         st.download_button(
             label="⬇  Download Report (.md)",
             data=r["writer"],
@@ -490,7 +565,74 @@ if r:
             mime="text/markdown",
         )
 
-    # Critic feedback
+        # ── TTS for report ──
+        report_text = r["writer"].replace('"', '\\"').replace('\n', ' ').replace('`', '')
+        st.components.v1.html(f"""
+        <div style="margin-top:0.8rem;">
+            <button id="ttsReportBtn" onclick="toggleTTS('report')" style="
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,140,50,0.25);
+                border-radius: 10px;
+                color: #ff8c32;
+                font-size: 0.85rem;
+                font-family: 'DM Sans', sans-serif;
+                padding: 0.5rem 1.2rem;
+                cursor: pointer;
+                transition: all 0.2s;
+            ">🔊&nbsp; Read Report Aloud</button>
+            <span id="ttsReportStatus" style="
+                font-family:'DM Mono',monospace;
+                font-size:0.72rem;
+                color:#a09890;
+                margin-left:0.8rem;
+                letter-spacing:0.05em;
+            "></span>
+        </div>
+        <script>
+        var reportText = "{report_text}";
+        var reportUtter = null;
+        var reportPlaying = false;
+
+        function toggleTTS(id) {{
+            var btn = document.getElementById('ttsReportBtn');
+            var status = document.getElementById('ttsReportStatus');
+            if (reportPlaying) {{
+                window.speechSynthesis.cancel();
+                reportPlaying = false;
+                btn.textContent = '🔊\u00a0 Read Report Aloud';
+                btn.style.borderColor = 'rgba(255,140,50,0.25)';
+                status.textContent = '';
+                return;
+            }}
+            window.speechSynthesis.cancel();
+            reportUtter = new SpeechSynthesisUtterance(reportText);
+            reportUtter.rate = 1.0;
+            reportUtter.pitch = 1.0;
+            reportUtter.lang = 'en-US';
+            reportUtter.onstart = () => {{
+                reportPlaying = true;
+                btn.textContent = '⏹\u00a0 Stop Reading';
+                btn.style.borderColor = '#ff5a1a';
+                btn.style.color = '#ff5a1a';
+                status.textContent = '● Speaking…';
+            }};
+            reportUtter.onend = () => {{
+                reportPlaying = false;
+                btn.textContent = '🔊\u00a0 Read Report Aloud';
+                btn.style.borderColor = 'rgba(255,140,50,0.25)';
+                btn.style.color = '#ff8c32';
+                status.textContent = '✓ Done';
+            }};
+            reportUtter.onerror = () => {{
+                reportPlaying = false;
+                btn.textContent = '🔊\u00a0 Read Report Aloud';
+                status.textContent = '⚠ Error';
+            }};
+            window.speechSynthesis.speak(reportUtter);
+        }}
+        </script>
+        """, height=60)
+
     if "critic" in r:
         st.markdown("""
         <div class="feedback-panel">
@@ -498,6 +640,74 @@ if r:
         """, unsafe_allow_html=True)
         st.markdown(r["critic"])
         st.markdown("</div>", unsafe_allow_html=True)
+
+        # ── TTS for critic ──
+        critic_text = r["critic"].replace('"', '\\"').replace('\n', ' ').replace('`', '')
+        st.components.v1.html(f"""
+        <div style="margin-top:0.8rem;">
+            <button id="ttsCriticBtn" onclick="toggleCriticTTS()" style="
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(80,200,120,0.25);
+                border-radius: 10px;
+                color: #50c878;
+                font-size: 0.85rem;
+                font-family: 'DM Sans', sans-serif;
+                padding: 0.5rem 1.2rem;
+                cursor: pointer;
+                transition: all 0.2s;
+            ">🔊&nbsp; Read Feedback Aloud</button>
+            <span id="ttsCriticStatus" style="
+                font-family:'DM Mono',monospace;
+                font-size:0.72rem;
+                color:#a09890;
+                margin-left:0.8rem;
+                letter-spacing:0.05em;
+            "></span>
+        </div>
+        <script>
+        var criticText = "{critic_text}";
+        var criticUtter = null;
+        var criticPlaying = false;
+
+        function toggleCriticTTS() {{
+            var btn = document.getElementById('ttsCriticBtn');
+            var status = document.getElementById('ttsCriticStatus');
+            if (criticPlaying) {{
+                window.speechSynthesis.cancel();
+                criticPlaying = false;
+                btn.textContent = '🔊\u00a0 Read Feedback Aloud';
+                btn.style.borderColor = 'rgba(80,200,120,0.25)';
+                status.textContent = '';
+                return;
+            }}
+            window.speechSynthesis.cancel();
+            criticUtter = new SpeechSynthesisUtterance(criticText);
+            criticUtter.rate = 1.0;
+            criticUtter.pitch = 1.0;
+            criticUtter.lang = 'en-US';
+            criticUtter.onstart = () => {{
+                criticPlaying = true;
+                btn.textContent = '⏹\u00a0 Stop Reading';
+                btn.style.borderColor = '#50c878';
+                btn.style.color = '#50c878';
+                status.textContent = '● Speaking…';
+            }};
+            criticUtter.onend = () => {{
+                criticPlaying = false;
+                btn.textContent = '🔊\u00a0 Read Feedback Aloud';
+                btn.style.borderColor = 'rgba(80,200,120,0.25)';
+                btn.style.color = '#50c878';
+                status.textContent = '✓ Done';
+            }};
+            criticUtter.onerror = () => {{
+                criticPlaying = false;
+                btn.textContent = '🔊\u00a0 Read Feedback Aloud';
+                status.textContent = '⚠ Error';
+            }};
+            window.speechSynthesis.speak(criticUtter);
+        }}
+        </script>
+        """, height=60)
 
 
 # ── Footer ────────────────────────────────────────────────────────────────────
