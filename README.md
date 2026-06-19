@@ -33,7 +33,7 @@ Just type a topic (or speak it using voice input), hit **Research**, and get a c
 ##  Features
 
 - 🔎 **Real-time web search** via Tavily API
-- 🤖 **Mistral AI** as the language model backbone (`mistral-large-latest`)
+- 🤖 **Mistral AI** as the language model backbone ("mistral-small-latest" )
 - 🔗 **LangGraph** for multi-agent orchestration and workflow management
 - 🖥️ **Streamlit UI** with dark indigo/violet theming
 - 📊 **Live step-by-step progress** — watch each agent work in real time
@@ -50,7 +50,7 @@ Just type a topic (or speak it using voice input), hit **Research**, and get a c
 |---|---|
 | [LangChain](https://langchain.com) | Agent framework and tooling |
 | [LangGraph](https://langchain-ai.github.io/langgraph/) | Multi-agent workflow orchestration |
-| [Mistral AI](https://mistral.ai) | Language model (`mistral-large-latest`) |
+| [Mistral AI](https://mistral.ai) | Language model ("mistral-small-latest") |
 | [Tavily](https://tavily.com) | Web search API |
 | [Streamlit](https://streamlit.io) | UI and cloud deployment |
 | Python 3.10+ | Core language |
